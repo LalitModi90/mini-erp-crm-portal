@@ -3,7 +3,7 @@ import { config } from '../config/env.js';
 
 export const generateToken = (payload: object) => {
   const secret: Secret = config.jwtSecret;
-  const options: SignOptions = { expiresIn: '1d' };
+  const options: SignOptions = { expiresIn: config.jwtExpiresIn as SignOptions['expiresIn'] };
   return jwt.sign(payload, secret, options);
 };
 

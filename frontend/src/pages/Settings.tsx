@@ -29,6 +29,7 @@ import {
   FileText
 } from 'lucide-react';
 import { uploadImageToCloudinary, isConfigured } from '../utils/cloudinary';
+import { api } from '../services/api';
 
 export const Settings: React.FC = () => {
   // State for active tab in Settings Menu
@@ -318,21 +319,37 @@ export const Settings: React.FC = () => {
     }, 500);
   };
 
-  const handleSecuritySubmit = (e: React.FormEvent) => {
+  const handleSecuritySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!securityForm.currentPassword) {
+      showNotification('Please enter your current password.', 'warning');
+      return;
+    }
     if (securityForm.newPassword && securityForm.newPassword !== securityForm.confirmPassword) {
       showNotification('New passwords do not match!', 'warning');
       return;
     }
+    if (securityForm.newPassword.length < 8) {
+      showNotification('New password must be at least 8 characters.', 'warning');
+      return;
+    }
     setIsSavingSecurity(true);
-    localStorage.setItem('mini_erp_security_form', JSON.stringify(securityForm));
-    setTimeout(() => {
+    try {
+      const res = await api.post('/auth/change-password', {
+        currentPassword: securityForm.currentPassword,
+        newPassword: securityForm.newPassword,
+      });
+      showNotification(res.data?.message || 'Password changed successfully!', 'success');
+      localStorage.setItem('mini_erp_security_form', JSON.stringify(securityForm));
+    } catch (err: any) {
+      console.error('Change password failed:', err);
+      showNotification(err.response?.data?.message || 'Failed to change password. Please try again.', 'warning');
+    } finally {
       setIsSavingSecurity(false);
-      setIsSecuritySaved(true);
       setSecurityForm((prev: typeof securityForm) => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
-      showNotification('Security settings updated successfully!', 'success');
+      setIsSecuritySaved(true);
       setTimeout(() => setIsSecuritySaved(false), 2500);
-    }, 500);
+    }
   };
 
   const handleInventorySubmit = (e: React.FormEvent) => {

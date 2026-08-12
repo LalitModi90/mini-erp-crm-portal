@@ -8,7 +8,7 @@ export class AuditService {
         action,
         entity,
         entityId,
-        details: details || undefined,
+        details: details ? JSON.stringify(details) : undefined,
       },
     });
   }

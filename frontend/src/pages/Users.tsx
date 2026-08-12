@@ -5,7 +5,7 @@ import { getAuthHeaders } from '../utils/auth';
 import { 
   Search, UserPlus, Filter, RotateCcw, Edit2, Trash2, Crown, 
   CheckCircle2, XCircle, MoreVertical, Download, Eye, Columns, 
-  ChevronLeft, ChevronRight, AlertCircle, Users as UsersIcon, UserCheck, UserX, Shield
+  ChevronLeft, ChevronRight, AlertCircle, Users as UsersIcon, UserCheck, UserX, Shield, Mail
 } from 'lucide-react';
 
 interface UserItem {
@@ -18,6 +18,7 @@ interface UserItem {
   phone: string;
   lastLogin: string;
   department: string;
+  verified?: boolean;
   createdAt?: string;
 }
 
@@ -58,6 +59,7 @@ export const Users: React.FC = () => {
   // Form Fields
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
+  const [formPhone, setFormPhone] = useState('');
   const [formPassword, setFormPassword] = useState('');
   const [formRole, setFormRole] = useState('SALES');
   const [formStatus, setFormStatus] = useState<'Active' | 'Inactive'>('Active');
@@ -91,11 +93,12 @@ export const Users: React.FC = () => {
             name: u.name,
             email: u.email,
             role: u.role,
-            status: 'Active', // DB doesn't have status, default to Active
+            status: u.isActive ? 'Active' : 'Inactive',
             empCode: `EMP-${String(idx + 1).padStart(3, '0')}`,
-            phone: `98765432${String(idx).padStart(2, '0')}`,
-            lastLogin: 'Recently logged in',
+            phone: u.phone || '-',
+            lastLogin: u.isActive ? 'Active account' : 'Deactivated',
             department: dept,
+            verified: u.emailVerified,
             createdAt: u.createdAt
           };
         });
@@ -187,11 +190,15 @@ export const Users: React.FC = () => {
         name: formName,
         email: formEmail,
         password: formPassword,
-        role: formRole
+        role: formRole,
+        phone: formPhone || undefined
       }, { headers: getHeaders() });
 
       if (res.data?.success) {
-        showToast("User created successfully in database!");
+        const emailSent = res.data.data?.emailStatus !== 'failed';
+        showToast(emailSent
+          ? "User created. A verification email was sent to the user's email address."
+          : "User created, but the verification email could not be sent.");
         fetchUsers();
       } else {
         // Fallback local update
@@ -212,6 +219,7 @@ export const Users: React.FC = () => {
     setSelectedUser(user);
     setFormName(user.name);
     setFormEmail(user.email);
+    setFormPhone(user.phone !== '-' ? user.phone : '');
     setFormRole(user.role);
     setFormStatus(user.status);
     setFormPassword('');
@@ -223,17 +231,25 @@ export const Users: React.FC = () => {
     if (!selectedUser) return;
 
     try {
-      const payload: any = { name: formName, email: formEmail, role: formRole };
+      const payload: any = { name: formName, email: formEmail, phone: formPhone || undefined };
       if (formPassword) payload.password = formPassword;
 
-      const res = await axios.put(`${API_URL}/api/users/${selectedUser.id}`, payload, { headers: getHeaders() });
+      await axios.put(`${API_URL}/api/users/${selectedUser.id}`, payload, { headers: getHeaders() });
 
-      if (res.data?.success) {
-        showToast("User updated successfully in database!");
-        fetchUsers();
-      } else {
-        throw new Error("API update failed");
+      if (formRole !== selectedUser.role) {
+        await axios.patch(`${API_URL}/api/users/${selectedUser.id}/role`, { role: formRole }, { headers: getHeaders() });
       }
+
+      if (formStatus !== selectedUser.status) {
+        if (formStatus === 'Inactive') {
+          await axios.patch(`${API_URL}/api/users/${selectedUser.id}/deactivate`, {}, { headers: getHeaders() });
+        } else {
+          await axios.patch(`${API_URL}/api/users/${selectedUser.id}/activate`, {}, { headers: getHeaders() });
+        }
+      }
+
+      showToast("User updated successfully!");
+      fetchUsers();
     } catch (err: any) {
       console.error("API edit user failed:", err);
       const errMsg = err.response?.data?.message || "Failed to update user details. Check permissions.";
@@ -241,6 +257,39 @@ export const Users: React.FC = () => {
     } finally {
       setShowEditModal(false);
       resetForm();
+    }
+  };
+
+  // Resend Verification Email
+  const handleResendVerification = async (user: UserItem) => {
+    try {
+      const res = await axios.post(`${API_URL}/api/users/${user.id}/resend-verification`, {}, { headers: getHeaders() });
+      if (res.data?.success) {
+        showToast("Verification email sent successfully!");
+      } else {
+        throw new Error("API resend failed");
+      }
+    } catch (err: any) {
+      console.error("API resend verification failed:", err);
+      alert(err.response?.data?.message || "Failed to send verification email.");
+    }
+  };
+
+  // Deactivate / Activate User
+  const handleToggleActive = async (user: UserItem) => {
+    const action = user.status === 'Active' ? 'deactivate' : 'activate';
+    if (!window.confirm(`Are you sure you want to ${action} ${user.name}?`)) return;
+    try {
+      const res = await axios.patch(`${API_URL}/api/users/${user.id}/${action}`, {}, { headers: getHeaders() });
+      if (res.data?.success) {
+        showToast(`User ${action === 'deactivate' ? 'deactivated' : 'activated'} successfully!`);
+        fetchUsers();
+      } else {
+        throw new Error("API action failed");
+      }
+    } catch (err: any) {
+      console.error("API toggle active failed:", err);
+      alert(err.response?.data?.message || "Failed to update user status.");
     }
   };
 
@@ -266,6 +315,7 @@ export const Users: React.FC = () => {
   const resetForm = () => {
     setFormName('');
     setFormEmail('');
+    setFormPhone('');
     setFormPassword('');
     setFormRole('SALES');
     setFormStatus('Active');
@@ -713,6 +763,11 @@ export const Users: React.FC = () => {
                         <td className="py-3">
                           <div className="text-dark fw-medium" style={{ fontSize: '0.825rem' }}>{u.email}</div>
                           <div className="text-muted small" style={{ fontSize: '0.725rem' }}>{u.phone}</div>
+                          {u.verified === false && (
+                            <span className="d-inline-flex align-items-center gap-1 fw-semibold mt-1" style={{ fontSize: '0.7rem', color: '#d97706' }}>
+                              <Mail size={11} /> Email not verified
+                            </span>
+                          )}
                         </td>
                       )}
                       {visibleColumns.status && (
@@ -739,8 +794,16 @@ export const Users: React.FC = () => {
                             >
                               <Eye size={14} className="text-secondary" />
                             </button>
+                            {u.verified === false && (
+                              <button className="btn btn-sm btn-light border p-1.5" style={{ borderRadius: '6px' }} onClick={() => handleResendVerification(u)} title="Resend Verification Email">
+                                <Mail size={14} className="text-primary" />
+                              </button>
+                            )}
                             <button className="btn btn-sm btn-light border p-1.5" style={{ borderRadius: '6px' }} onClick={() => handleEditOpen(u)} title="Edit User">
                               <Edit2 size={14} className="text-secondary" />
+                            </button>
+                            <button className="btn btn-sm btn-light border p-1.5" style={{ borderRadius: '6px' }} onClick={() => handleToggleActive(u)} title={u.status === 'Active' ? 'Deactivate User' : 'Activate User'}>
+                              {u.status === 'Active' ? <UserX size={14} className="text-danger" /> : <UserCheck size={14} className="text-success" />}
                             </button>
                             <button className="btn btn-sm btn-light border p-1.5" style={{ borderRadius: '6px' }} onClick={() => handleDeleteUser(u.id)} title="Delete User">
                               <Trash2 size={14} className="text-danger" />
@@ -825,12 +888,12 @@ export const Users: React.FC = () => {
                   </div>
 
                   <div className="mb-3">
-                    <label className="form-label text-muted small fw-semibold">PASSWORD</label>
+                    <label className="form-label text-muted small fw-semibold">PASSWORD / TEMPORARY PASSWORD</label>
                     <input 
                       type="password" 
                       className="form-control" 
                       style={{ borderRadius: '8px', fontSize: '0.85rem' }}
-                      placeholder="Min 6 characters"
+                      placeholder="Min 8 characters, letters & numbers"
                       value={formPassword}
                       onChange={(e) => setFormPassword(e.target.value)}
                       required
@@ -838,7 +901,7 @@ export const Users: React.FC = () => {
                   </div>
 
                   <div className="row g-3">
-                    <div className="col-6">
+                    <div className="col-12 col-sm-6">
                       <label className="form-label text-muted small fw-semibold">SYSTEM ROLE</label>
                       <select 
                         className="form-select" 
@@ -853,18 +916,22 @@ export const Users: React.FC = () => {
                       </select>
                     </div>
 
-                    <div className="col-6">
-                      <label className="form-label text-muted small fw-semibold">STATUS</label>
-                      <select 
-                        className="form-select" 
+                    <div className="col-12 col-sm-6">
+                      <label className="form-label text-muted small fw-semibold">PHONE (OPTIONAL)</label>
+                      <input 
+                        type="tel" 
+                        className="form-control" 
                         style={{ borderRadius: '8px', fontSize: '0.85rem' }}
-                        value={formStatus}
-                        onChange={(e) => setFormStatus(e.target.value as any)}
-                      >
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                      </select>
+                        placeholder="e.g. +91 98765 43210"
+                        value={formPhone}
+                        onChange={(e) => setFormPhone(e.target.value)}
+                      />
                     </div>
+                  </div>
+
+                  <div className="d-flex align-items-center gap-2 mt-3 p-3 rounded-3" style={{ background: '#eff6ff', fontSize: '0.8rem', color: '#1e40af' }}>
+                    <Mail size={15} className="flex-shrink-0" />
+                    <span>A verification email with a one-time code will be sent to the user. They must verify their email before logging in.</span>
                   </div>
                 </div>
 
@@ -924,14 +991,14 @@ export const Users: React.FC = () => {
                       type="password" 
                       className="form-control" 
                       style={{ borderRadius: '8px', fontSize: '0.85rem' }}
-                      placeholder="Min 6 characters"
+                      placeholder="Min 8 characters, letters & numbers"
                       value={formPassword}
                       onChange={(e) => setFormPassword(e.target.value)}
                     />
                   </div>
 
                   <div className="row g-3">
-                    <div className="col-6">
+                    <div className="col-12 col-sm-4">
                       <label className="form-label text-muted small fw-semibold">SYSTEM ROLE</label>
                       <select 
                         className="form-select" 
@@ -946,7 +1013,7 @@ export const Users: React.FC = () => {
                       </select>
                     </div>
 
-                    <div className="col-6">
+                    <div className="col-12 col-sm-4">
                       <label className="form-label text-muted small fw-semibold">STATUS</label>
                       <select 
                         className="form-select" 
@@ -957,6 +1024,17 @@ export const Users: React.FC = () => {
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
                       </select>
+                    </div>
+
+                    <div className="col-12 col-sm-4">
+                      <label className="form-label text-muted small fw-semibold">PHONE (OPTIONAL)</label>
+                      <input 
+                        type="tel" 
+                        className="form-control" 
+                        style={{ borderRadius: '8px', fontSize: '0.85rem' }}
+                        value={formPhone}
+                        onChange={(e) => setFormPhone(e.target.value)}
+                      />
                     </div>
                   </div>
                 </div>

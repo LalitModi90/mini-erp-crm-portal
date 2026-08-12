@@ -4,6 +4,9 @@ import { DashboardLayout } from '../layouts/DashboardLayout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 
 import { Login } from '../pages/auth/Login';
+import { ForgotPassword } from '../pages/auth/ForgotPassword';
+import { VerifyOTP } from '../pages/auth/VerifyOTP';
+import { ResetPassword } from '../pages/auth/ResetPassword';
 import { Forbidden } from '../pages/Forbidden';
 import { Dashboard } from '../pages/dashboard/Dashboard';
 import { Customers } from '../pages/customers/Customers';
@@ -26,6 +29,9 @@ export const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/verify-otp" element={<VerifyOTP />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/forbidden" element={<Forbidden />} />
 
       <Route

@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 import { MENU_ACCESS, hasRole } from '../config/roles';
 import { 
   BarChart3, 
@@ -34,9 +35,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     { path: '/settings', label: 'Settings', icon: Settings },
   ].filter((item) => hasRole(user?.role, MENU_ACCESS[item.path] || []));
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // best-effort; token is cleared regardless
+    }
     logout();
-    navigate('/login');
+    navigate('/login', { replace: true });
   };
 
   return (

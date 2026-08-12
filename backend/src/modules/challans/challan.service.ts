@@ -72,24 +72,43 @@ export class ChallanService {
     const challan = await this.getById(challanId);
     if (!challan) throw new Error('Challan not found');
     if (challan.status === 'CONFIRMED') throw new Error('Challan is already confirmed');
+    if (challan.status === 'CANCELLED') throw new Error('Cannot confirm a cancelled challan');
 
-    // Execute atomic transaction for stock verification and reduction
+    // Pre-flight checks (outside transaction — read-only guards)
+    // 1. Verify customer is active
+    if (!challan.customer.isActive) {
+      throw new Error(`Customer "${challan.customer.name}" is inactive. Cannot confirm challan.`);
+    }
+
+    // 2. Verify all products are active
+    for (const item of challan.items) {
+      if (!(item.product as any)?.isActive) {
+        throw new Error(`Product "${item.productName}" (SKU: ${item.sku}) is inactive. Cannot confirm challan.`);
+      }
+    }
+
+    // Execute atomic transaction: stock check + deduction + movements + audit + challan update
     return prisma.$transaction(async (tx: any) => {
-      // 1. Verify stock availability for all items
+      const actorId = userId || challan.createdBy;
+
+      // 3. Verify stock availability for ALL items first (fail-fast before any write)
       for (const item of challan.items) {
         const product = await tx.product.findUnique({ where: { id: item.productId } });
         if (!product) {
-          throw new Error(`Product ${item.productName} no longer exists`);
+          throw new Error(`Product "${item.productName}" no longer exists in the system`);
         }
         if (product.stock < item.quantity) {
           throw new Error(
-            `Insufficient stock for ${item.productName} (SKU: ${item.sku}). Available: ${product.stock}, Required: ${item.quantity}`
+            `Insufficient stock for "${item.productName}" (SKU: ${item.sku}). ` +
+            `Available: ${product.stock}, Required: ${item.quantity}`,
           );
         }
       }
 
-      // 2. Reduce stock & record stock movement OUT for each item
+      // 4. For each item: decrement stock + create StockMovement OUT + create AuditLog
       for (const item of challan.items) {
+        const product = await tx.product.findUnique({ where: { id: item.productId } });
+
         await tx.product.update({
           where: { id: item.productId },
           data: { stock: { decrement: item.quantity } },
@@ -101,19 +120,56 @@ export class ChallanService {
             quantity: item.quantity,
             type: 'OUT',
             reason: `CHALLAN_CONFIRMED: ${challan.challanNumber}`,
-            createdBy: userId || challan.createdBy,
+            createdBy: actorId,
+          },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            userId: actorId,
+            action: 'CHALLAN_STOCK_OUT',
+            entity: 'Challan',
+            entityId: challanId,
+            details: {
+              challanNumber: challan.challanNumber,
+              productId: item.productId,
+              productName: item.productName,
+              sku: item.sku,
+              quantity: item.quantity,
+              previousStock: product?.stock ?? null,
+              newStock: (product?.stock ?? 0) - item.quantity,
+            },
           },
         });
       }
 
-      // 3. Mark Challan as CONFIRMED
-      return tx.challan.update({
+      // 5. Mark Challan as CONFIRMED — final step, triggers commit
+      const confirmed = await tx.challan.update({
         where: { id: challanId },
         data: { status: 'CONFIRMED' },
         include: { items: true, customer: true },
       });
+
+      // 6. Write a single summary AuditLog for the challan confirmation
+      await tx.auditLog.create({
+        data: {
+          userId: actorId,
+          action: 'CHALLAN_CONFIRMED',
+          entity: 'Challan',
+          entityId: challanId,
+          details: {
+            challanNumber: challan.challanNumber,
+            customerId: challan.customerId,
+            customerName: challan.customer.name,
+            totalQuantity: challan.totalQuantity,
+            totalAmount: challan.totalAmount,
+            itemCount: challan.items.length,
+          },
+        },
+      });
+
+      return confirmed;
     });
   }
 }
-
 

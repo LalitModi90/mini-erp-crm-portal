@@ -28,7 +28,7 @@ export class InventoryController {
 
   async getMovements(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const movements = await inventoryService.getStockMovements();
+      const movements = await inventoryService.getMovements();
       return sendSuccess(res, movements);
     } catch (error) {
       next(error);

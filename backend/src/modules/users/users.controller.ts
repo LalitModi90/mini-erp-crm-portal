@@ -44,8 +44,48 @@ export class UsersController {
     }
   }
 
+  async changeRole(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const user = await usersService.changeRole(req.params.id, req.body.role, req.user!.id);
+      return sendSuccess(res, user, 'User role updated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deactivate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const user = await usersService.deactivate(req.params.id, req.user!.id);
+      return sendSuccess(res, user, 'User deactivated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async activate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const user = await usersService.activate(req.params.id);
+      return sendSuccess(res, user, 'User activated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resendVerification(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await new UsersService().createVerificationEmail(req.params.id);
+      return sendSuccess(res, result, result.message);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      const user = await usersService.getById(req.params.id);
+      if (user && user.id === req.user!.id) {
+        return res.status(400).json({ success: false, message: 'You cannot delete your own account' });
+      }
       await usersService.delete(req.params.id);
       return sendSuccess(res, null, 'User deleted successfully');
     } catch (error) {

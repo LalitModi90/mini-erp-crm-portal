@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
 import { API_URL } from '../../services/api';
-import { 
-  BarChart3, 
-  ShieldCheck, 
-  User, 
-  Boxes, 
-  FileText, 
-  Eye, 
-  EyeOff, 
-  Monitor, 
-  PackageCheck 
+import {
+  BarChart3,
+  ShieldCheck,
+  User,
+  Boxes,
+  FileText,
+  Eye,
+  EyeOff,
+  Monitor,
+  PackageCheck
 } from 'lucide-react';
 
 export const Login: React.FC = () => {
@@ -30,13 +30,13 @@ export const Login: React.FC = () => {
   const handleRoleSelect = (role: 'ADMIN' | 'SALES' | 'WAREHOUSE' | 'ACCOUNTS') => {
     setSelectedRole(role);
     const emails: Record<string, string> = {
-      ADMIN: 'admin@erp.com',
-      SALES: 'sales@erp.com',
-      WAREHOUSE: 'warehouse@erp.com',
-      ACCOUNTS: 'accounts@erp.com',
+      ADMIN: '',
+      SALES: '',
+      WAREHOUSE: '',
+      ACCOUNTS: '',
     };
     setEmail(emails[role]);
-    setPassword('password123');
+    setPassword('');
     setErrorMessage(null);
   };
 
@@ -45,7 +45,7 @@ export const Login: React.FC = () => {
     setIsSubmitting(true);
     setErrorMessage(null);
     const finalEmail = email || `${selectedRole.toLowerCase()}@erp.com`;
-    const finalPassword = password || 'password123';
+    const finalPassword = password || '';
     try {
       const res = await axios.post(`${API_URL}/api/auth/login`, {
         email: finalEmail,
@@ -66,7 +66,12 @@ export const Login: React.FC = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error('Login failed:', err);
-      setErrorMessage('Invalid email or password. Please try again.');
+      const serverMsg = (err as any)?.response?.data?.message;
+      if (serverMsg && serverMsg.toLowerCase().includes('verify your email')) {
+        setErrorMessage('Please verify your email before logging in. Check your inbox or verify below.');
+      } else {
+        setErrorMessage(serverMsg || 'Invalid email or password. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -75,7 +80,7 @@ export const Login: React.FC = () => {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', background: '#f8fafc', fontFamily: "'Inter', sans-serif" }}>
       <div style={{ width: '100%', display: 'flex', flexWrap: 'wrap' }}>
-        
+
         {/* Left Side - Hero / Illustration Section */}
         <div
           style={{
@@ -155,7 +160,7 @@ export const Login: React.FC = () => {
           }}
         >
           <div style={{ width: '100%', maxWidth: '420px' }}>
-            
+
             {/* Logo Icon */}
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <div
@@ -261,9 +266,9 @@ export const Login: React.FC = () => {
                   />
                   Remember me
                 </label>
-                <a href="#forgot" onClick={(e) => e.preventDefault()} style={{ fontSize: '0.875rem', color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>
+                <Link to="/forgot-password" style={{ fontSize: '0.875rem', color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>
                   Forgot Password?
-                </a>
+                </Link>
               </div>
 
               {errorMessage && (
@@ -294,6 +299,14 @@ export const Login: React.FC = () => {
                 {isSubmitting ? 'Logging in...' : 'Login'}
               </button>
             </form>
+
+            {/* Verify email helper */}
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+              <span style={{ color: '#64748b', fontSize: '0.85rem' }}>Account created but not verified? </span>
+              <Link to="/verify-otp" style={{ fontSize: '0.85rem', color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>
+                Verify Email
+              </Link>
+            </div>
 
             {/* OR Divider */}
             <div style={{ display: 'flex', alignItems: 'center', margin: '2rem 0', color: '#94a3b8', fontSize: '0.8rem' }}>

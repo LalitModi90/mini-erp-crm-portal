@@ -245,7 +245,8 @@ export const Reports: React.FC = () => {
 
   const fetchReportsData = async () => {
     setLoading(true);
-    const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
+    const token = localStorage.getItem('token');
+    if (!token) { setLoading(false); return; }
     const headers = { Authorization: `Bearer ${token}` };
 
     try {
