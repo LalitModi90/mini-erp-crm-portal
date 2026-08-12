@@ -5,8 +5,8 @@
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "dev": "tsc && node dist/server.js",
-    "build": "tsc",
+    "dev": "prisma generate --schema=src/prisma/schema.prisma && tsc && node dist/server.js",
+    "build": "node scripts/prepare-client.mjs && tsc",
     "start": "node dist/server.js",
     "seed": "node src/prisma/seed.js",
     "prisma:generate": "prisma generate --schema=src/prisma/schema.prisma",

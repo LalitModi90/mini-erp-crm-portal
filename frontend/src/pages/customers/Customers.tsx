@@ -49,7 +49,7 @@ export const Customers: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
-      const res = await axios.get(`http://localhost:5000/api/customers?search=${search}`, {
+      const res = await axios.get(`https://mini-erp-crm-portal-wsqe.onrender.com/api/customers?search=${search}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -245,7 +245,7 @@ export const Customers: React.FC = () => {
     if (!editCustomer) return;
     try {
       const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
-      await axios.put(`http://localhost:5000/api/customers/${editCustomer.id}`, editForm, {
+      await axios.put(`https://mini-erp-crm-portal-wsqe.onrender.com/api/customers/${editCustomer.id}`, editForm, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEditCustomer(null);
@@ -265,7 +265,7 @@ export const Customers: React.FC = () => {
     const targetName = deleteCustomerTarget.name;
     try {
       const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
-      await axios.delete(`http://localhost:5000/api/customers/${targetId}`, {
+      await axios.delete(`https://mini-erp-crm-portal-wsqe.onrender.com/api/customers/${targetId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCustomers(prev => prev.filter(c => c.id !== targetId));

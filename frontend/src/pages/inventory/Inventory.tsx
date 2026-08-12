@@ -105,7 +105,7 @@ export const Inventory: React.FC = () => {
 
     try {
       // 1. Fetch Products for Real-time Stock Counts & Form Options
-      const prodRes = await axios.get('http://localhost:5000/api/products', { headers }).catch(() => null);
+      const prodRes = await axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/products', { headers }).catch(() => null);
       let loadedProds: ProductStockInfo[] = [];
       if (prodRes && prodRes.data?.success && Array.isArray(prodRes.data.data)) {
         loadedProds = prodRes.data.data.map((p: any) => ({
@@ -126,7 +126,7 @@ export const Inventory: React.FC = () => {
       }
 
       // 2. Fetch Real Stock Movements
-      const movRes = await axios.get('http://localhost:5000/api/inventory/movements', { headers }).catch(() => null);
+      const movRes = await axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/inventory/movements', { headers }).catch(() => null);
       if (movRes && movRes.data?.success && Array.isArray(movRes.data.data) && movRes.data.data.length > 0) {
         const mappedMovs = movRes.data.data.map((item: any) => ({
           id: item.id,
@@ -232,7 +232,7 @@ export const Inventory: React.FC = () => {
 
     try {
       if (prod && prod.id && !prod.id.startsWith('p')) {
-        await axios.post('http://localhost:5000/api/inventory/adjust', {
+        await axios.post('https://mini-erp-crm-portal-wsqe.onrender.com/api/inventory/adjust', {
           productId: prod.id,
           quantity: qty,
           type: 'IN',
@@ -278,7 +278,7 @@ export const Inventory: React.FC = () => {
 
     try {
       if (prod && prod.id && !prod.id.startsWith('p')) {
-        await axios.post('http://localhost:5000/api/inventory/adjust', {
+        await axios.post('https://mini-erp-crm-portal-wsqe.onrender.com/api/inventory/adjust', {
           productId: prod.id,
           quantity: qty,
           type: 'OUT',

@@ -169,7 +169,7 @@ export const Products: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
-      const res = await axios.get(`http://localhost:5000/api/products?search=${search}`, {
+      const res = await axios.get(`https://mini-erp-crm-portal-wsqe.onrender.com/api/products?search=${search}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -349,7 +349,7 @@ export const Products: React.FC = () => {
         imageUrl: addForm.imageUrl,
       };
 
-      await axios.post('http://localhost:5000/api/products', payload, {
+      await axios.post('https://mini-erp-crm-portal-wsqe.onrender.com/api/products', payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -408,7 +408,7 @@ export const Products: React.FC = () => {
         imageUrl: editForm.imageUrl,
       };
 
-      await axios.put(`http://localhost:5000/api/products/${editProduct.id}`, payload, {
+      await axios.put(`https://mini-erp-crm-portal-wsqe.onrender.com/api/products/${editProduct.id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -440,7 +440,7 @@ export const Products: React.FC = () => {
     const targetName = deleteProductTarget.name;
     try {
       const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
-      await axios.delete(`http://localhost:5000/api/products/${targetId}`, {
+      await axios.delete(`https://mini-erp-crm-portal-wsqe.onrender.com/api/products/${targetId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(prev => prev.filter(p => p.id !== targetId));

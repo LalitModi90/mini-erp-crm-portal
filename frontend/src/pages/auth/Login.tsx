@@ -46,7 +46,7 @@ export const Login: React.FC = () => {
     const finalEmail = email || `${selectedRole.toLowerCase()}@erp.com`;
     const finalPassword = password || 'password123';
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', {
+      const res = await axios.post('https://mini-erp-crm-portal-wsqe.onrender.com/api/auth/login', {
         email: finalEmail,
         password: finalPassword,
       });

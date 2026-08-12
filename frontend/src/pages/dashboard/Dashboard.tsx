@@ -211,7 +211,7 @@ export const Dashboard: React.FC = () => {
     const fetchDashboardStats = async () => {
       try {
         const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
-        const res = await axios.get('http://localhost:5000/api/dashboard/stats', {
+        const res = await axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/dashboard/stats', {
           headers: { Authorization: `Bearer ${token}` },
         });
 

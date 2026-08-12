@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -333,7 +333,7 @@ async function main() {
   const d13 = new Date(Date.now() - 40 * 24 * 3600000); // 40 days ago (Last Month)
 
   // 7. Seed Challans & ChallanItems with custom dates for graph visualization
-  const challanData = [
+  const challanData: Prisma.ChallanUncheckedCreateInput[] = [
     {
       id: 'ch-401',
       challanNumber: 'CH-00123',

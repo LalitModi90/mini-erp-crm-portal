@@ -138,7 +138,7 @@ export const Challans: React.FC = () => {
     const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
     const headers = { Authorization: `Bearer ${token}` };
 
-    axios.get('http://localhost:5000/api/challans', { headers })
+    axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/challans', { headers })
       .then(res => {
         if (Array.isArray(res.data) && res.data.length > 0) {
           const mapped = res.data.map((c: any) => ({

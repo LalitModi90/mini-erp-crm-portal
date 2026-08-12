@@ -61,7 +61,7 @@ export const AddCustomer: React.FC = () => {
       const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
       
       await axios.post(
-        'http://localhost:5000/api/customers',
+        'https://mini-erp-crm-portal-wsqe.onrender.com/api/customers',
         {
           name: formData.name,
           email: formData.email || `${formData.name.toLowerCase().replace(/\s+/g, '')}@gmail.com`,

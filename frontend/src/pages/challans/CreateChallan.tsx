@@ -221,7 +221,7 @@ export const CreateChallan: React.FC = () => {
     const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
     const headers = { Authorization: `Bearer ${token}` };
 
-    axios.get('http://localhost:5000/api/customers', { headers })
+    axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/customers', { headers })
       .then(res => {
         if (Array.isArray(res.data) && res.data.length > 0) {
           const mapped = res.data.map((c: any) => ({
@@ -245,7 +245,7 @@ export const CreateChallan: React.FC = () => {
     const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
     const headers = { Authorization: `Bearer ${token}` };
 
-    axios.get('http://localhost:5000/api/products', { headers })
+    axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/products', { headers })
       .then(res => {
         if (Array.isArray(res.data) && res.data.length > 0) {
           const mapped = res.data.map((p: any) => ({
@@ -430,7 +430,7 @@ export const CreateChallan: React.FC = () => {
     setCreatedChallanNo(generated);
 
     try {
-      await axios.post('http://localhost:5000/api/challans', payload, {
+      await axios.post('https://mini-erp-crm-portal-wsqe.onrender.com/api/challans', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
     } catch (e) {
