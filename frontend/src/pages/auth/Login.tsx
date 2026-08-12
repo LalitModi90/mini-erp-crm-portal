@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
+import { API_URL } from '../../services/api';
 import { 
   BarChart3, 
   ShieldCheck, 
@@ -46,7 +47,7 @@ export const Login: React.FC = () => {
     const finalEmail = email || `${selectedRole.toLowerCase()}@erp.com`;
     const finalPassword = password || 'password123';
     try {
-      const res = await axios.post('https://mini-erp-crm-portal-wsqe.onrender.com/api/auth/login', {
+      const res = await axios.post(`${API_URL}/api/auth/login`, {
         email: finalEmail,
         password: finalPassword,
       });

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Calendar, RotateCw, X, Save } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../services/api';
 
 export const AddCustomer: React.FC = () => {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ export const AddCustomer: React.FC = () => {
       const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
       
       await axios.post(
-        'https://mini-erp-crm-portal-wsqe.onrender.com/api/customers',
+        `${API_URL}/api/customers`,
         {
           name: formData.name,
           email: formData.email || `${formData.name.toLowerCase().replace(/\s+/g, '')}@gmail.com`,

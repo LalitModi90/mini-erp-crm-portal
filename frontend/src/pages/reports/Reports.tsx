@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../../services/api';
 import Chart from 'react-apexcharts';
 import { 
   TrendingUp, 
@@ -248,9 +249,9 @@ export const Reports: React.FC = () => {
     const headers = { Authorization: `Bearer ${token}` };
 
     try {
-      const challanRes = await axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/challans', { headers }).catch(() => null);
-      const customersRes = await axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/customers', { headers }).catch(() => null);
-      const productsRes = await axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/products', { headers }).catch(() => null);
+      const challanRes = await axios.get(`${API_URL}/api/challans`, { headers }).catch(() => null);
+      const customersRes = await axios.get(`${API_URL}/api/customers`, { headers }).catch(() => null);
+      const productsRes = await axios.get(`${API_URL}/api/products`, { headers }).catch(() => null);
 
       if (challanRes && challanRes.data?.success && Array.isArray(challanRes.data.data)) {
         setAllChallans(challanRes.data.data);

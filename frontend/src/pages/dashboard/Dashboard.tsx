@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../../services/api';
 
 interface TooltipState {
   visible: boolean;
@@ -211,7 +212,7 @@ export const Dashboard: React.FC = () => {
     const fetchDashboardStats = async () => {
       try {
         const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
-        const res = await axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/dashboard/stats', {
+        const res = await axios.get(`${API_URL}/api/dashboard/stats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

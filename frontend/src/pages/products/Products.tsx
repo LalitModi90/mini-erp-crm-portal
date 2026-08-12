@@ -6,6 +6,7 @@ import {
   Copy, Trash2, Box, Package, Layers, AlertTriangle, CheckCircle2, XCircle, Image as ImageIcon
 } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { can } from '../../config/roles';
 import { uploadImageToCloudinary } from '../../utils/cloudinary';
@@ -169,7 +170,7 @@ export const Products: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
-      const res = await axios.get(`https://mini-erp-crm-portal-wsqe.onrender.com/api/products?search=${search}`, {
+      const res = await axios.get(`${API_URL}/api/products?search=${search}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -349,7 +350,7 @@ export const Products: React.FC = () => {
         imageUrl: addForm.imageUrl,
       };
 
-      await axios.post('https://mini-erp-crm-portal-wsqe.onrender.com/api/products', payload, {
+      await axios.post(`${API_URL}/api/products`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -408,7 +409,7 @@ export const Products: React.FC = () => {
         imageUrl: editForm.imageUrl,
       };
 
-      await axios.put(`https://mini-erp-crm-portal-wsqe.onrender.com/api/products/${editProduct.id}`, payload, {
+      await axios.put(`${API_URL}/api/products/${editProduct.id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -440,7 +441,7 @@ export const Products: React.FC = () => {
     const targetName = deleteProductTarget.name;
     try {
       const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
-      await axios.delete(`https://mini-erp-crm-portal-wsqe.onrender.com/api/products/${targetId}`, {
+      await axios.delete(`${API_URL}/api/products/${targetId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProducts(prev => prev.filter(p => p.id !== targetId));

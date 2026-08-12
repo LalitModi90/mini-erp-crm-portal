@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../services/api';
 import { getAuthHeaders } from '../utils/auth';
 import { 
   Search, UserPlus, Filter, RotateCcw, Edit2, Trash2, Crown, 
@@ -77,7 +78,7 @@ export const Users: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/users', { headers: getHeaders() });
+      const res = await axios.get(`${API_URL}/api/users`, { headers: getHeaders() });
       if (res.data?.success && Array.isArray(res.data.data)) {
         const mapped: UserItem[] = res.data.data.map((u: any, idx: number) => {
           let dept = 'Sales';
@@ -182,7 +183,7 @@ export const Users: React.FC = () => {
     }
 
     try {
-      const res = await axios.post('https://mini-erp-crm-portal-wsqe.onrender.com/api/users', {
+      const res = await axios.post(`${API_URL}/api/users`, {
         name: formName,
         email: formEmail,
         password: formPassword,
@@ -225,7 +226,7 @@ export const Users: React.FC = () => {
       const payload: any = { name: formName, email: formEmail, role: formRole };
       if (formPassword) payload.password = formPassword;
 
-      const res = await axios.put(`https://mini-erp-crm-portal-wsqe.onrender.com/api/users/${selectedUser.id}`, payload, { headers: getHeaders() });
+      const res = await axios.put(`${API_URL}/api/users/${selectedUser.id}`, payload, { headers: getHeaders() });
 
       if (res.data?.success) {
         showToast("User updated successfully in database!");
@@ -248,7 +249,7 @@ export const Users: React.FC = () => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      const res = await axios.delete(`https://mini-erp-crm-portal-wsqe.onrender.com/api/users/${id}`, { headers: getHeaders() });
+      const res = await axios.delete(`${API_URL}/api/users/${id}`, { headers: getHeaders() });
       if (res.data?.success) {
         showToast("User deleted from database!");
         fetchUsers();

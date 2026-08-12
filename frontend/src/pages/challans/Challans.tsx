@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { can } from '../../config/roles';
 import { Plus, 
@@ -138,7 +139,7 @@ export const Challans: React.FC = () => {
     const token = localStorage.getItem('jwt_token') || 'demo_jwt_token_2026';
     const headers = { Authorization: `Bearer ${token}` };
 
-    axios.get('https://mini-erp-crm-portal-wsqe.onrender.com/api/challans', { headers })
+    axios.get(`${API_URL}/api/challans`, { headers })
       .then(res => {
         if (Array.isArray(res.data) && res.data.length > 0) {
           const mapped = res.data.map((c: any) => ({
