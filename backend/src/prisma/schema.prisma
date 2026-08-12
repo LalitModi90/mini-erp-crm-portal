@@ -1,0 +1,106 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String          @id @default(uuid())
+  name           String
+  email          String          @unique
+password       String
+  role           String        @default("ADMIN")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime        @updatedAt
+  stockMovements StockMovement[]
+  challans       Challan[]
+  auditLogs      AuditLog[]
+}
+
+model Customer {
+  id           String          @id @default(uuid())
+  name         String
+  mobile       String?
+  email        String?
+  businessName String?
+  gstNumber    String?
+  customerType String          @default("RETAIL")
+  address      String?
+  status       String          @default("LEAD")
+  followUpDate DateTime?
+  notes        String?
+  isActive     Boolean         @default(true)
+  challans     Challan[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Product {
+  id             String          @id @default(uuid())
+  name           String
+  sku            String          @unique
+  category       String?
+  price          Decimal
+  imageUrl       String?
+  stock          Int             @default(0)
+  minimumStock   Int             @default(5)
+  warehouse      String?         @default("Main Warehouse")
+  isActive       Boolean         @default(true)
+  stockMovements StockMovement[]
+  challanItems   ChallanItem[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model StockMovement {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  quantity  Int
+  type      String
+  reason    String?
+  createdBy String
+  user      User     @relation(fields: [createdBy], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Challan {
+  id            String        @id @default(uuid())
+  challanNumber String        @unique
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  status        String        @default("DRAFT")
+  totalQuantity Int           @default(0)
+  totalAmount   Decimal       @default(0.00)
+  createdBy     String
+  user          User          @relation(fields: [createdBy], references: [id])
+  items         ChallanItem[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model ChallanItem {
+  id          String   @id @default(uuid())
+  challanId   String
+  challan     Challan  @relation(fields: [challanId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  productName String
+  sku         String
+  price       Decimal
+  quantity    Int
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  details   String?
+  createdAt DateTime @default(now())
+}
